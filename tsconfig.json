@@ -1,13 +1,19 @@
 {
     "compilerOptions": {
+        "skipLibCheck": true,
+        "target": "es6",
         "module": "commonjs",
-        "esModuleInterop": true,
-        "noImplicitAny": true,
         "moduleResolution": "node",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "rootDir": ".",
+        "strict": false,
+        "noImplicitAny": true,
         "outDir": "./build",
         "declaration": true,
-        "allowJs": true,
-        "target": "es5",
+        "sourceMap": true,
+        "baseUrl": ".",
         "paths": {
             "*": [
                 "./node_modules/*"
@@ -15,6 +21,10 @@
         }
     },
     "include": [
-        "./src/**/*"
+        "./src/**/*",
+        "interfaces",
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }

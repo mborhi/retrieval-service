@@ -1,1 +1,4 @@
 /build
+jest.config.js
+tsconfig.json
+index.d.ts
