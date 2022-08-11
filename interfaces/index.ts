@@ -10,3 +10,8 @@ export type PlaylistNameAndTracks = {
     playlistName: string
     playlistTracks: TrackData[]
 }
+
+export interface CollectionMember {
+    id: string
+    name: string
+}
