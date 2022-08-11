@@ -18,15 +18,16 @@
             "*": [
                 "./node_modules/*"
             ]
-        },
+        }
     },
     "include": [
         "./src/**/*",
-        "interfaces",
+        "./interfaces/**/*",
         "./tests/**/*",
-        "endpoints.config.ts"
+        "./endpoints.config.ts",
+        "./index.d.ts"
     ],
     "exclude": [
         "node_modules"
-    ]
+    ],
 }

@@ -8,7 +8,7 @@
     "test:watch": "jest --watch",
     "tsc": "tsc",
     "start:prod": "node build/server.js",
-    "start:dev": "npx ts-node-dev src/server.ts --debug"
+    "start:dev": "npx ts-node-dev --files src/server.ts"
   },
   "keywords": [],
   "author": "",

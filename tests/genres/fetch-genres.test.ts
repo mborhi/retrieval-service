@@ -3,7 +3,10 @@ import { Db, MongoClient as Client } from "mongodb";
 import { loadGenres } from "../../src/utils/genres/fetch-genres";
 
 describe("Fetch genres from database or make Spotify API call", () => {
-    let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };;
+
+    const mock_token = "mock_access_token";
+
+    let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };
     let db: Db;
     const expectedLength = 126;
 
@@ -53,14 +56,16 @@ describe("Fetch genres from database or make Spotify API call", () => {
         const mockGenres = generateMockGenres(expectedLength);
         await db.collection('genres').insertMany(mockGenres);
         await db.collection('collectionsUpdates').insertOne({ "name": "genres", "last_updated": Date.now() });
-        const genres = await loadGenres(db);
+        const genres = await loadGenres(mock_token, db);
         // the retreived genres should always have a length of 126, the number of genres maintained by Spotify 
         expect(genres.length).toEqual(126);
     });
 });
 
 describe("Genre collection revalidation", () => {
-    let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };;
+    const mock_token = "mock_access_token";
+
+    let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };
     let db: Db;
 
     const unmockedFetch = global.fetch
@@ -110,7 +115,7 @@ describe("Genre collection revalidation", () => {
         await db.collection('genres').insertOne(mockGenre);
         await db.collection('collectionsUpdates').insertOne(lastUpdates);
         // load genres to trigger revalidatation
-        await loadGenres(db);
+        await loadGenres(mock_token, db);
         const genresUpdate = await db.collection('collectionsUpdates').findOne({ name: "genres" });
         const last_updated = await genresUpdate.last_updated;
 
@@ -131,7 +136,7 @@ describe("Genre collection revalidation", () => {
         await db.collection('genres').insertOne(mockOldCategory);
         await db.collection('collectionsUpdates').insertOne(lastUpdates);
         // load genres to update collection
-        await loadGenres(db);
+        await loadGenres(mock_token, db);
         const genres = await db.collection('genres').find({}).toArray();
         expect(await genres[0].id).toEqual("mockGenre");
         expect(await genres[0].name).toEqual("mockGenre");
