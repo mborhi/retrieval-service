@@ -6,5 +6,6 @@ export default {
     ServerPort: process.env.SERVER_PORT ?? 3000,
     SpotifyAPIBaseURL: process.env.SPOTIFY_BASE_URL ?? '',
     MongoURI: process.env.MONGODB_URI ?? '',
-    MongoDB: process.env.MONGODB_DB ?? ''
+    MongoDB: process.env.MONGODB_DB ?? '',
+    MockMongoDB: process.env.MOCK_MONGODB_DB ?? '',
 }

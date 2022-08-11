@@ -1,5 +1,5 @@
-const { MongoClient } = require('mongodb');
-import { Db, MongoClient as Client } from "mongodb";
+import endpoints from '../../endpoints.config';
+import { Db, MongoClient } from "mongodb";
 import { loadGenres } from "../../src/utils/genres/fetch-genres";
 
 describe("Fetch genres from database or make Spotify API call", () => {
@@ -31,11 +31,11 @@ describe("Fetch genres from database or make Spotify API call", () => {
     });
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(globalThis.__MONGO_URI__, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+        connection = await MongoClient.connect(endpoints.MongoURI, {
+            // useNewUrlParser: true,
+            // useUnifiedTopology: true,
         });
-        db = await connection.db(globalThis.__MONGO_DB_NAME__);
+        db = await connection.db(endpoints.MockMongoDB);
 
     });
 
@@ -80,11 +80,11 @@ describe("Genre collection revalidation", () => {
     });
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(globalThis.__MONGO_URI__, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+        connection = await MongoClient.connect(endpoints.MongoURI, {
+            // useNewUrlParser: true,
+            // useUnifiedTopology: true,
         });
-        db = await connection.db(globalThis.__MONGO_DB_NAME__);
+        db = await connection.db(endpoints.MockMongoDB);
     });
 
     afterEach(async () => {

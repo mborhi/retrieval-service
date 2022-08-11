@@ -1,6 +1,6 @@
-import { Db, MongoClient as Client } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 import { connectToDatabase, queryDatabase } from "../src/utils/database/database";
-const { MongoClient } = require('mongodb');
+import endpoints from "../endpoints.config";
 
 describe('Query Database', () => {
     let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };
@@ -14,11 +14,16 @@ describe('Query Database', () => {
     }
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(globalThis.__MONGO_URI__, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+        let client = await MongoClient.connect(endpoints.MongoURI).then((client) => {
+            return {
+                client,
+                db: client.db(endpoints.MockMongoDB),
+            }
         });
-        db = await connection.db(globalThis.__MONGO_DB_NAME__);
+        connection = client.client;
+        db = client.db;
+
+        // db = await connection.db(endpoints.MockMongoDB);
     });
 
     beforeEach(async () => {
