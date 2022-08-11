@@ -14,14 +14,14 @@ describe('Query Database', () => {
     }
 
     beforeAll(async () => {
-        let client = await MongoClient.connect(endpoints.MongoURI).then((client) => {
+        let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
             return {
                 client,
                 db: client.db(endpoints.MockMongoDB),
             }
         });
-        connection = client.client;
-        db = client.db;
+        connection = promise.client;
+        db = promise.db;
 
         // db = await connection.db(endpoints.MockMongoDB);
     });

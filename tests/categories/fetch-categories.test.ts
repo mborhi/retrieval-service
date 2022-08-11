@@ -31,11 +31,14 @@ describe("Fetch categories from database or make Spotify API call", () => {
     });
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(endpoints.MongoURI, {
-            // useNewUrlParser: true,
-            // useUnifiedTopology: true,
+        let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
+            return {
+                client,
+                db: client.db(endpoints.MockMongoDB),
+            }
         });
-        db = await connection.db(endpoints.MockMongoDB);
+        connection = promise.client;
+        db = promise.db;
 
     });
 
@@ -46,6 +49,9 @@ describe("Fetch categories from database or make Spotify API call", () => {
     });
 
     afterAll(async () => {
+        // purge collections and close db
+        await db.collection('categories').deleteMany({});
+        await db.collection('collectionUpdates').deleteMany({});
         await connection.close();
     });
 
@@ -92,11 +98,14 @@ describe("Categories collection revalidation", () => {
     });
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(endpoints.MongoURI, {
-            // useNewUrlParser: true,
-            // useUnifiedTopology: true,
+        let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
+            return {
+                client,
+                db: client.db(endpoints.MockMongoDB),
+            }
         });
-        db = await connection.db(endpoints.MockMongoDB);
+        connection = promise.client;
+        db = promise.db;
     });
 
     afterEach(async () => {
@@ -111,7 +120,9 @@ describe("Categories collection revalidation", () => {
     });
 
     afterAll(async () => {
-        // close db connection
+        // pruge collections and close db connection
+        await db.collection('categories').deleteMany({});
+        await db.collection('collectionUpdates').deleteMany({});
         await connection.close();
     });
 
@@ -137,8 +148,8 @@ describe("Categories collection revalidation", () => {
         const categoriesUpdates = await db.collection('collectionsUpdates').findOne({ name: "categories" });
         const last_updated = await categoriesUpdates.last_updated;
 
-        expect(last_updated).toBeGreaterThanOrEqual(Date.now() - 500);
-        expect(last_updated).toBeLessThan(Date.now() + 500);
+        expect(last_updated).toBeGreaterThanOrEqual(Date.now() - 4000); // four seconds to account for db query delay
+        expect(last_updated).toBeLessThan(Date.now() + 3000);
     });
 
     it("correctly refreshes catogories after one hour", async () => {

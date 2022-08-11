@@ -31,11 +31,14 @@ describe("Fetch genres from database or make Spotify API call", () => {
     });
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(endpoints.MongoURI, {
-            // useNewUrlParser: true,
-            // useUnifiedTopology: true,
+        let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
+            return {
+                client,
+                db: client.db(endpoints.MockMongoDB),
+            }
         });
-        db = await connection.db(endpoints.MockMongoDB);
+        connection = promise.client;
+        db = promise.db;
 
     });
 
@@ -46,6 +49,8 @@ describe("Fetch genres from database or make Spotify API call", () => {
     });
 
     afterAll(async () => {
+        await db.collection('genres').deleteMany({});
+        await db.collection('collectionUpdates').deleteMany({});
         await connection.close();
     });
 
@@ -53,6 +58,7 @@ describe("Fetch genres from database or make Spotify API call", () => {
      * This requires that entries be loaded into the mock database
      */
     it("correctly retreives all genres from the database", async () => {
+        console.log('db: ', db);
         const mockGenres = generateMockGenres(expectedLength);
         await db.collection('genres').insertMany(mockGenres);
         await db.collection('collectionsUpdates').insertOne({ "name": "genres", "last_updated": Date.now() });
@@ -80,11 +86,14 @@ describe("Genre collection revalidation", () => {
     });
 
     beforeAll(async () => {
-        connection = await MongoClient.connect(endpoints.MongoURI, {
-            // useNewUrlParser: true,
-            // useUnifiedTopology: true,
+        let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
+            return {
+                client,
+                db: client.db(endpoints.MockMongoDB),
+            }
         });
-        db = await connection.db(endpoints.MockMongoDB);
+        connection = promise.client;
+        db = promise.db;
     });
 
     afterEach(async () => {
@@ -100,6 +109,8 @@ describe("Genre collection revalidation", () => {
 
     afterAll(async () => {
         // close db connection
+        await db.collection('genres').deleteMany({});
+        await db.collection('collectionsUpdates').deleteMany({});
         await connection.close();
     });
 
@@ -119,8 +130,8 @@ describe("Genre collection revalidation", () => {
         const genresUpdate = await db.collection('collectionsUpdates').findOne({ name: "genres" });
         const last_updated = await genresUpdate.last_updated;
 
-        expect(last_updated).toBeGreaterThanOrEqual(Date.now() - 2000);
-        expect(last_updated).toBeLessThan(Date.now() + 2000);
+        expect(last_updated).toBeGreaterThanOrEqual(Date.now() - 4000); // four seconds to account for db query delay
+        expect(last_updated).toBeLessThan(Date.now() + 3000);
     });
 
     it("correctly refreshes genres after one hour", async () => {
