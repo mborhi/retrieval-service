@@ -39,8 +39,6 @@ export async function connectToDatabase() {
     return cached.conn;
 }
 
-// TODO: function to check whether entries have expires_in dates which are older than a week, remove if they are
-
 /**
  * Finds one entry using the given query from the specified collection of the database
  * @param {string} collection the collection in the database to query from
