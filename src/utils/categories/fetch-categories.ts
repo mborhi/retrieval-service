@@ -3,6 +3,7 @@ import { stringify } from "querystring";
 import endpointsConfig from "../../../endpoints.config";
 import { connectToDatabase } from "../database/database";
 import { Db, MongoClient } from "mongodb";
+import fetch from 'node-fetch';
 
 /**
  * Retrieves a list of categories 
