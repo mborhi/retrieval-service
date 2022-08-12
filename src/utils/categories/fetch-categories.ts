@@ -4,6 +4,7 @@ import endpointsConfig from "../../../endpoints.config";
 import { connectToDatabase } from "../database/database";
 import { Db, MongoClient } from "mongodb";
 import fetch from 'node-fetch';
+import { dataIsError, responseIsError } from "../fetch-utils";
 
 /**
  * Retrieves a list of categories 
@@ -29,6 +30,8 @@ export const loadCategories = async (access_token: string, database: Db = undefi
     if (result.length === 0 || Date.now() - lastUpdated > 3600 * 1000) { // revalidate after one hour
         // make request for categories
         result = await getCategories(access_token);
+        // check results for error
+        if (dataIsError(result)) return result; // handle by endpoint
         // purge all old data
         await db.collection('categories').deleteMany({});
         // insert into database
@@ -71,11 +74,10 @@ export const getCategories = async (token: string, country: string = 'US', local
             'Authorization': 'Bearer ' + token
         }
     });
-    // console.log('response: ', await response.json());
+    if (responseIsError(response)) return await response.json();
     try {
-        const data = await response.json();
-        // console.log('received data: ', await data);
-        const categories: CollectionMember[] = await data.categories.items;
+        const data: SpotifyApi.MultipleCategoriesResponse = await response.json();
+        const categories: CollectionMember[] = data.categories.items;
         return categories;
     } catch (error) {
         console.error(error);

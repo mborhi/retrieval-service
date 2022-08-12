@@ -1,4 +1,5 @@
 import express from 'express';
+import { dataIsError } from '../utils/fetch-utils';
 import { loadCategories } from '../utils/categories/fetch-categories';
 import { getCategoryPlaylist } from '../utils/categories/fetch-category-id';
 
@@ -8,7 +9,10 @@ router.get('/', async (req, res) => {
     const token = req.headers.access_token as string;
     try {
         const categories = await loadCategories(token);
-        res.status(200).json({ "data": categories });
+        if (dataIsError(categories)) {
+            res.send(categories);
+        } else
+            res.status(200).json({ "data": categories });
     } catch (error) {
         console.error(error);
         res.status(500).json({
