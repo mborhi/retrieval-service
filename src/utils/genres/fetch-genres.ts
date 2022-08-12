@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import { CollectionMember } from "../../../interfaces";
 import { connectToDatabase } from "../../utils/database/database";
 import endpoints from "../../../endpoints.config";

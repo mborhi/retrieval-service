@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData } from "../../../interfaces";
 import endpointsConfig from "../../../endpoints.config";

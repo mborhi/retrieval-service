@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     const token = req.headers.access_token as string;
     try {
-        const categories = await loadCategories(token,);
+        const categories = await loadCategories(token);
         res.status(200).json({ "data": categories });
     } catch (error) {
         console.error(error);
