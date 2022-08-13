@@ -15,8 +15,6 @@ describe("Fetch categories from database or make Spotify API call", () => {
     let db: Db;
     const expectedLength = 50;
 
-    // const unmockedFetch = global.fetch;
-
     const generateMockCategories = (length: number) => {
         const mocks = [...Array(length).fill(1)].map((e, idx) => {
             return {
@@ -25,15 +23,6 @@ describe("Fetch categories from database or make Spotify API call", () => {
         });
         return mocks
     }
-
-    // beforeAll(() => {
-    //     // mock fetch
-    //     global.fetch = jest.fn(() =>
-    //         Promise.resolve({
-    //             json: () => Promise.resolve({ test: 100 }),
-    //         }),
-    //     ) as jest.Mock;
-    // });
 
     beforeAll(async () => {
         let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
@@ -50,12 +39,6 @@ describe("Fetch categories from database or make Spotify API call", () => {
     afterEach(async () => {
         await db.collection('collectionsUpdates').deleteMany({});
     });
-
-    // afterAll(() => {
-    //     // restore fetch
-    //     global.fetch = unmockedFetch
-    //     jest.restoreAllMocks();
-    // });
 
     afterAll(async () => {
         // purge collections and close db
@@ -94,19 +77,6 @@ describe("Categories collection revalidation", () => {
         "name": "Pop"
     }
 
-    // const unmockedFetch = global.fetch;
-
-    // beforeAll(() => {
-    //     // mock fetch
-    //     global.fetch = jest.fn(() =>
-    //         Promise.resolve({
-    //             json: () => Promise.resolve({
-    //                 categories: { items: [mockCategory] }
-    //             }),
-    //         }),
-    //     ) as jest.Mock;
-    // });
-
     beforeAll(async () => {
         let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
             return {
@@ -123,12 +93,6 @@ describe("Categories collection revalidation", () => {
         await db.collection('collectionsUpdates').deleteMany({});
     });
 
-    // afterAll(() => {
-    //     // restore fetch
-    //     global.fetch = unmockedFetch
-    //     jest.restoreAllMocks();
-    // });
-
     afterAll(async () => {
         // pruge collections and close db connection
         await db.collection('categories').deleteMany({});
@@ -137,13 +101,11 @@ describe("Categories collection revalidation", () => {
     });
 
     it("correctly updates categories last_updated timestamp after one hour", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(Promise.resolve({
-            json: () => Promise.resolve({
-                categories: {
-                    items: [mockCategory]
-                }
-            }),
-        })));
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({
+            categories: {
+                items: [mockCategory]
+            }
+        }))));
         const lastUpdates = {
             name: "categories",
             last_updated: 10 // low number to simulate expiration
@@ -170,13 +132,11 @@ describe("Categories collection revalidation", () => {
     });
 
     it("correctly refreshes catogories after one hour", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(Promise.resolve({
-            json: () => Promise.resolve({
-                categories: {
-                    items: [mockCategory]
-                }
-            }),
-        })));
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({
+            categories: {
+                items: [mockCategory]
+            }
+        }))));
         const lastUpdates = {
             name: "categories",
             last_updated: 10 // low number to simulate expiration
@@ -194,12 +154,12 @@ describe("Categories collection revalidation", () => {
         }
         await db.collection('categories').insertOne(mockOldCategory);
         await db.collection('collectionsUpdates').insertOne(lastUpdates);
-        const res = await db.collection('collectionsUpdates').findOne({ name: "categories" });
-        console.log('after inserting last updated:', res);
+        await db.collection('collectionsUpdates').findOne({ name: "categories" });
+
         // load categories to update collection
         await loadCategories(mock_access_token, db);
         const categories = await db.collection('categories').find({}).toArray();
-        expect(categories).toEqual([mockCategory]);
+        expect(categories).toEqual([{ ...mockCategory, "_id": expect.anything() }]);
     });
 
 });
