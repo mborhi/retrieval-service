@@ -154,6 +154,13 @@ describe("Category playlist and track retrieval", () => {
     it("correctly formats data received from the Spotify Web API", async () => {
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify({
+                "playlists": {
+                    "items": [mock_playlist_data]
+                }
+            }),
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify({
                 "tracks": {
                     "items": [mock_playlist_track]
                 }
