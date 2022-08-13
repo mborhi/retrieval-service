@@ -3,6 +3,7 @@ import { CollectionMember } from "../../../interfaces";
 import { connectToDatabase } from "../../utils/database/database";
 import endpoints from "../../../endpoints.config";
 import { Db } from "mongodb";
+import { dataIsError, responseIsError } from '../fetch-utils';
 
 /**
  * Retrieves a list of genres
@@ -29,6 +30,8 @@ export const loadGenres = async (token: string, database: Db = undefined): Promi
     if (result.length === 0 || Date.now() - lastUpdated > 3600 * 1000) { // if the database hasn't been updated in one hour
         // make request for genre seeds
         result = await getAvailableGenreSeeds(token);
+        // check results for error
+        if (dataIsError(result)) return result; // handle by endpoint
         // clear out all genres in the database
         await db.collection('genres').deleteMany({});
         // insert genres into database
@@ -63,6 +66,7 @@ const getAvailableGenreSeeds = async (token: string): Promise<CollectionMember[]
             'Authorization': 'Bearer ' + token
         }
     });
+    if (responseIsError(response)) return await response.json();
     try {
         const data: SpotifyApi.AvailableGenreSeedsResponse = await response.json();
         const genres: string[] = data.genres;

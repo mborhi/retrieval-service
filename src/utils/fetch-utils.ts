@@ -18,7 +18,7 @@ export const responseIsError = (response: Response): boolean => {
  * @returns whether the given JSON has an error
  */
 export const dataIsError = (data: any): boolean => {
-    if (data.error !== null || data.error !== undefined) {
+    if (data.error !== undefined) {
         return true;
     }
     return false;

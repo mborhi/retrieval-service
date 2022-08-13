@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData } from "../../../interfaces";
 import endpointsConfig from "../../../endpoints.config";
+import { responseIsError } from '../fetch-utils';
 
 
 const baseURL = endpointsConfig.SpotifyAPIBaseURL;
@@ -14,9 +15,10 @@ const baseURL = endpointsConfig.SpotifyAPIBaseURL;
  */
 export const getGenreTracks = async (token: string, genre: string): Promise<TrackData[]> => {
     const genreItems = await searchGenre(token, genre);
-    if (genreItems.length === 0) {
-        return [];
-    }
+    // if (genreItems.length === 0) {
+    //     return [];
+    // }
+    if (genreItems) return;
     const genreTracks = genreItems.map((item: SpotifyApi.TrackObjectFull) => {
         // validated these
         return {
@@ -62,6 +64,7 @@ const searchGenre = async (token: string, genre: string, limit: number = 50): Pr
             "Authorization": "Bearer " + token
         }
     });
+    if (responseIsError(response)) return await response.json();
     try {
         const data: SpotifyApi.TrackSearchResponse = await response.json();
         return data.tracks.items;

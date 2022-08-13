@@ -11,6 +11,7 @@ import { dataIsError, responseIsError } from "../fetch-utils";
  * @param {string} access_token an OAuth2 access token of the user requesting this resource
  * @param {MongoClient} [database] optional. the database to load categories from
  * @returns {Promise<CollectionMember[]>} the list of categories
+ * @throws Will throw an error if categories cannot be retrieved from the Spotify Web API
  */
 export const loadCategories = async (access_token: string, database: Db = undefined): Promise<CollectionMember[]> => {
     // const { db } = await connectToDatabase();
