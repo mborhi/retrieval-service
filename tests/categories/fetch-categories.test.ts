@@ -36,6 +36,10 @@ describe("Fetch categories from database or make Spotify API call", () => {
 
     });
 
+    beforeEach(async () => {
+        await db.collection('collectionsUpdates').insertOne({ "name": "categories", "last_updated": Date.now() });
+    });
+
     afterEach(async () => {
         await db.collection('collectionsUpdates').deleteMany({});
     });
@@ -53,7 +57,8 @@ describe("Fetch categories from database or make Spotify API call", () => {
         const mockCategories = generateMockCategories(expectedLength);
         await db.collection("categories").insertMany(mockCategories);
         // set expire time for categories
-        await db.collection("collectionsUpdates").insertOne({ name: "categories", last_updated: Date.now() });
+        // const inserted = await db.collection("collectionsUpdates").findOne({ name: "categories" });
+        // console.log('inserted update token:', inserted);
         const categories = await loadCategories(mock_access_token, db);
         // the retreived categories should always include 50 elements, the number of categories maintained by Spotify
         expect(categories.length).toEqual(expectedLength);

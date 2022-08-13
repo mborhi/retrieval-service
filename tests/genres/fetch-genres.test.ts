@@ -48,17 +48,16 @@ describe("Fetch genres from database or make Spotify API call", () => {
         db = promise.db;
     });
 
+    beforeEach(async () => {
+        await db.collection('collectionsUpdates').insertOne({ "name": "genres", "last_updated": Date.now() });
+    });
+
     afterEach(async () => {
         await db.collection('collectionsUpdates').deleteMany({});
         await db.collection('genres').deleteMany({});
         // await db.collection('collectionsUpdates').deleteMany({});
     });
 
-    // afterAll(() => {
-    //     // restore fetch
-    //     global.fetch = unmockedFetch
-    //     jest.restoreAllMocks();
-    // });
 
     afterAll(async () => {
         await db.collection('genres').deleteMany({});
@@ -74,7 +73,7 @@ describe("Fetch genres from database or make Spotify API call", () => {
 
         const mockGenres = generateMockGenres(expectedLength);
         await db.collection('genres').insertMany(mockGenres);
-        await db.collection('collectionsUpdates').insertOne({ "name": "genres", "last_updated": Date.now() });
+        // await db.collection('collectionsUpdates').insertOne({ "name": "genres", "last_updated": Date.now() });
         const genres = await loadGenres(mock_token, db);
         // the retreived genres should always have a length of 126, the number of genres maintained by Spotify 
         expect(genres.length).toEqual(expectedLength);
@@ -86,17 +85,6 @@ describe("Genre collection revalidation", () => {
 
     let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };
     let db: Db;
-
-    // const unmockedFetch = global.fetch
-
-    // beforeAll(() => {
-    //     // mock fetch
-    //     global.fetch = jest.fn(() =>
-    //         Promise.resolve({
-    //             json: () => Promise.resolve({ genres: ['mockGenre'] }),
-    //         }),
-    //     ) as jest.Mock;
-    // });
 
     beforeAll(async () => {
         let promise = await MongoClient.connect(endpoints.MongoURI).then((client) => {
@@ -119,14 +107,8 @@ describe("Genre collection revalidation", () => {
 
     afterEach(async () => {
         await db.collection('genres').deleteMany({});
-        // await db.collection('collectionsUpdates').deleteMany({});
+        await db.collection('collectionsUpdates').deleteMany({});
     })
-
-    // afterAll(() => {
-    //     // restore fetch
-    //     global.fetch = unmockedFetch
-    //     jest.restoreAllMocks();
-    // });
 
     afterAll(async () => {
         // close db connection
@@ -137,16 +119,11 @@ describe("Genre collection revalidation", () => {
 
     it("correctly updates genres last_updated timestamp after one hour", async () => {
         mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
-        const lastUpdates = {
-            name: "genres",
-            last_updated: 10
-        };
         const mockGenre = {
             id: "acoustic",
             name: "acoustic",
         };
         const res = await db.collection('genres').insertOne(mockGenre);
-        console.log('insert mock genre:', res);
         // await db.collection('collectionsUpdates').insertOne(lastUpdates);
         // load genres to trigger revalidatation
         await loadGenres(mock_token, db);
@@ -159,10 +136,6 @@ describe("Genre collection revalidation", () => {
 
     it("correctly refreshes genres after one hour", async () => {
         mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
-        const lastUpdates = {
-            name: "genres",
-            last_updated: 10 // low number to simulate expiration
-        };
         // this is the only document that is in genres collections before re-validation
         const mockOldCategory = {
             id: "acoustic",
