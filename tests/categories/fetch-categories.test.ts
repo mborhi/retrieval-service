@@ -58,6 +58,8 @@ describe("Fetch categories from database or make Spotify API call", () => {
         // the retreived categories should always include 50 elements, the number of categories maintained by Spotify
         expect(categories.length).toEqual(expectedLength);
     });
+
+
 });
 
 describe("Categories collection revalidation", () => {
@@ -131,7 +133,7 @@ describe("Categories collection revalidation", () => {
         expect(last_updated).toBeLessThan(Date.now() + 3000);
     });
 
-    it("correctly refreshes catogories after one hour", async () => {
+    it("correctly refreshes categories after one hour", async () => {
         mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({
             categories: {
                 items: [mockCategory]
@@ -154,12 +156,30 @@ describe("Categories collection revalidation", () => {
         }
         await db.collection('categories').insertOne(mockOldCategory);
         await db.collection('collectionsUpdates').insertOne(lastUpdates);
-        await db.collection('collectionsUpdates').findOne({ name: "categories" });
 
         // load categories to update collection
         await loadCategories(mock_access_token, db);
         const categories = await db.collection('categories').find({}).toArray();
         expect(categories).toEqual([{ ...mockCategory, "_id": expect.anything() }]);
+    });
+
+    it('correctly catches Spotify Web API fetch error on revalidation', async () => {
+        // mock fetch call
+        const mockSpotifyError = {
+            "error": {
+                "status": 401,
+                "message": "invalid access token",
+            }
+        };
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify(mockSpotifyError), { status: 401 })));
+        // add mock last_updated value for categories to trigger revalidation
+        const lastUpdates = {
+            name: "categories",
+            last_updated: 10 // low number to simulate expiration
+        };
+        await db.collection('collectionsUpdates').insertOne(lastUpdates);
+        const result = await loadCategories(mock_access_token, db);
+        expect(result).toEqual(mockSpotifyError);
     });
 
 });
