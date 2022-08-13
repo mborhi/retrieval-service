@@ -30,9 +30,19 @@ router.get('/:category_id', async (req, res) => {
     const id = req.params.category_id;
     try {
         const categoryPlaylist = await getCategoryPlaylist(token, id);
-        res.status(200).json({
-            "data": categoryPlaylist
-        });
+        if (dataIsError(categoryPlaylist)) {
+            res.send(categoryPlaylist);
+        } else if (categoryPlaylist.length === 0) {
+            res.send({
+                "error": {
+                    "status": 501,
+                    "message": "error retrieving requested category data"
+                }
+            });
+        } else
+            res.status(200).json({
+                "data": categoryPlaylist
+            });
     } catch (error) {
         console.error(error);
         res.status(500).json({

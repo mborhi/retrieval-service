@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData, PlaylistNameAndTracks } from '../../../interfaces/index';
+import { dataIsError, responseIsError } from '../fetch-utils';
 
 const baseURL = process.env.SPOTIFY_BASE_URL;
 
@@ -37,11 +38,12 @@ export const getCategoryPlaylist = async (token: string, categoryID: string, cou
             'Authorization': 'Bearer ' + token
         }
     });
-
+    if (responseIsError(response)) return await response.json();
     try {
         const data: SpotifyApi.CategoryPlaylistsResponse = await response.json();
         const playlists = data.playlists.items;
-        const playlistsData: PlaylistNameAndTracks[] = playlists.length !== 0 ? await getPlaylistsData(token, playlists) : [];
+        // handle empty result at endpoint
+        const playlistsData: PlaylistNameAndTracks[] = await getPlaylistsData(token, playlists);
         return playlistsData;
     } catch (error) {
         console.error("Error: ", error);
@@ -59,11 +61,15 @@ export const getCategoryPlaylist = async (token: string, categoryID: string, cou
 const getPlaylistsData = async (token: string, playlists: SpotifyApi.PlaylistObjectSimplified[]): Promise<PlaylistNameAndTracks[]> => {
     const listOfPlaylistsTracks = playlists.map(async (playlist) => {
         const playlistTracks = await getPlayListTracks(token, playlist);
-        return { playlistName: playlist.name, playlistTracks: playlistTracks };
+        if (dataIsError(playlistTracks)) {
+            return playlistTracks as SpotifyApi.ErrorObject; // dataIsError asserts that this is an error object
+        }
+        return { playlistName: playlist.name, playlistTracks: playlistTracks as TrackData[] }; // can only be this, dataIsError filters
     });
-
     const results = await Promise.all(listOfPlaylistsTracks);
-    return results;
+    // filter out errors
+    const filteredResults = filterErrors(results);
+    return filteredResults;
 }
 
 /**
@@ -84,7 +90,7 @@ const getPlaylistsData = async (token: string, playlists: SpotifyApi.PlaylistObj
  * @returns {TrackData[]}               an array of the playlists' tracks data (name, previewURL)
  * @throws Will throw an error if playlists cannot be retrieved from the Spotify Web API.
  */
-const getPlayListTracks = async (token: string, playlist: SpotifyApi.PlaylistObjectSimplified, fields = 'tracks', market = 'US'): Promise<TrackData[]> => {
+const getPlayListTracks = async (token: string, playlist: SpotifyApi.PlaylistObjectSimplified, fields = 'tracks', market = 'US'): Promise<TrackData[] | SpotifyApi.ErrorObject> => {
     const query = {
         fields: fields,
         market: market
@@ -98,6 +104,7 @@ const getPlayListTracks = async (token: string, playlist: SpotifyApi.PlaylistObj
             'Authorization': 'Bearer ' + token
         }
     });
+    if (responseIsError(response)) return await response.json();
     try {
         const data: SpotifyApi.SinglePlaylistResponse = await response.json();
         const playlistTracks = data.tracks.items; // list of spotify_tracks
@@ -118,4 +125,14 @@ const getPlayListTracks = async (token: string, playlist: SpotifyApi.PlaylistObj
         console.error("Error: ", error);
         throw error;
     }
+}
+
+type MaybeTracksOrErrors = PlaylistNameAndTracks | SpotifyApi.ErrorObject;
+
+const filterErrors = (list: MaybeTracksOrErrors[]): PlaylistNameAndTracks[] => {
+    let filtered: PlaylistNameAndTracks[] = [];
+    list.forEach((item: MaybeTracksOrErrors) => {
+        if (!dataIsError(item)) return filtered.push(item as PlaylistNameAndTracks);
+    })
+    return filtered;
 }
