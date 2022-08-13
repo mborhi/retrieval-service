@@ -67,8 +67,8 @@ const searchGenre = async (token: string, genre: string, limit: number = 50): Pr
     if (responseIsError(response)) return await response.json();
     try {
         const data: SpotifyApi.TrackSearchResponse = await response.json();
-        return data.tracks.items;
-        // return items;
+        const tracks = data.tracks.items;
+        return tracks;
     } catch (error) {
         throw error;
     }
