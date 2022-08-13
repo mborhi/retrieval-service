@@ -36,7 +36,7 @@ router.get('/:category_id', async (req, res) => {
             res.send({
                 "error": {
                     "status": 501,
-                    "message": "error retrieving requested category data"
+                    "message": "Error retrieving requested category data"
                 }
             });
         } else
@@ -48,7 +48,7 @@ router.get('/:category_id', async (req, res) => {
         res.status(500).json({
             "error": {
                 "status": 500,
-                "message": "internal server error"
+                "message": "Internal server error"
             }
         });
     }

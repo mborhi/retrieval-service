@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData } from "../../../interfaces";
 import endpointsConfig from "../../../endpoints.config";
-import { responseIsError } from '../fetch-utils';
+import { dataIsError, responseIsError } from '../fetch-utils';
 
 
 const baseURL = endpointsConfig.SpotifyAPIBaseURL;
@@ -13,12 +13,11 @@ const baseURL = endpointsConfig.SpotifyAPIBaseURL;
  * @param {string} genre    the Spoitfy genre seed track items to search for
  * @returns {TrackData[]}   a list of song names and preview_urls of the given genre
  */
-export const getGenreTracks = async (token: string, genre: string): Promise<TrackData[]> => {
-    const genreItems = await searchGenre(token, genre);
-    // if (genreItems.length === 0) {
-    //     return [];
-    // }
-    if (genreItems) return;
+export const getGenreTracks = async (token: string, genre: string): Promise<TrackData[] | SpotifyApi.ErrorObject> => {
+    const maybeGenreItems = await searchGenre(token, genre);
+    // handle possible errors
+    if (dataIsError(maybeGenreItems)) return maybeGenreItems as SpotifyApi.ErrorObject;
+    const genreItems = maybeGenreItems as SpotifyApi.TrackObjectFull[];
     const genreTracks = genreItems.map((item: SpotifyApi.TrackObjectFull) => {
         // validated these
         return {
@@ -47,8 +46,9 @@ export const getGenreTracks = async (token: string, genre: string): Promise<Trac
  * @param {string} genre    the spotify category to search for
  * @param {number} limit    the number of results to include in return (defualt = 50)
  * @returns {SpotifyApi.TrackObjectFull[]}       a list of tracks from the specified genre
+ * @throws Will throw an error if tracks cannot be retrieved correctly.
  */
-const searchGenre = async (token: string, genre: string, limit: number = 50): Promise<SpotifyApi.TrackObjectFull[]> => {
+const searchGenre = async (token: string, genre: string, limit: number = 50): Promise<SpotifyApi.TrackObjectFull[] | SpotifyApi.ErrorObject> => {
     const query = {
         q: 'genre:' + genre,
         type: 'track',

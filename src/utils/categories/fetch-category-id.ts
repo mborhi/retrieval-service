@@ -88,7 +88,7 @@ const getPlaylistsData = async (token: string, playlists: SpotifyApi.PlaylistObj
  * @param {string} [fields='tracks']    the type to return
  * @param {string} [market='US']        the market to return tracks from
  * @returns {TrackData[]}               an array of the playlists' tracks data (name, previewURL)
- * @throws Will throw an error if playlists cannot be retrieved from the Spotify Web API.
+ * @throws Will throw an error if playlists and tracks cannot be retrieved correctly.
  */
 const getPlayListTracks = async (token: string, playlist: SpotifyApi.PlaylistObjectSimplified, fields = 'tracks', market = 'US'): Promise<TrackData[] | SpotifyApi.ErrorObject> => {
     const query = {
@@ -129,6 +129,11 @@ const getPlayListTracks = async (token: string, playlist: SpotifyApi.PlaylistObj
 
 type MaybeTracksOrErrors = PlaylistNameAndTracks | SpotifyApi.ErrorObject;
 
+/**
+ * Filters the given list of tracks and errors to only contain the tracks
+ * @param list the list consisting of tracks and errors to filter
+ * @returns a list consisting only of tracks
+ */
 const filterErrors = (list: MaybeTracksOrErrors[]): PlaylistNameAndTracks[] => {
     let filtered: PlaylistNameAndTracks[] = [];
     list.forEach((item: MaybeTracksOrErrors) => {
