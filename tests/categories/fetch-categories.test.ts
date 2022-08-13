@@ -65,6 +65,7 @@ describe("Fetch categories from database or make Spotify API call", () => {
 describe("Categories collection revalidation", () => {
 
     const mock_access_token = "mock-access-token";
+
     let connection: { db: (arg0: any) => Db | PromiseLike<Db>; close: () => any; };
 
     let db: Db;
@@ -89,6 +90,14 @@ describe("Categories collection revalidation", () => {
         connection = promise.client;
         db = promise.db;
     });
+
+    beforeEach(async () => {
+        const lastUpdates = {
+            name: "categories",
+            last_updated: 10 // low number to simulate expiration
+        };
+        const insertRes = await db.collection('collectionsUpdates').insertOne(lastUpdates);
+    })
 
     afterEach(async () => {
         await db.collection('categories').deleteMany({});
@@ -123,7 +132,6 @@ describe("Categories collection revalidation", () => {
             "name": "Top Lists"
         }
         await db.collection('categories').insertOne(mockOldCategory);
-        await db.collection('collectionsUpdates').insertOne(lastUpdates);
         // load categories to trigger revalidatation
         await loadCategories(mock_access_token, db);
         const categoriesUpdates = await db.collection('collectionsUpdates').findOne({ name: "categories" });
@@ -139,10 +147,6 @@ describe("Categories collection revalidation", () => {
                 items: [mockCategory]
             }
         }))));
-        const lastUpdates = {
-            name: "categories",
-            last_updated: 10 // low number to simulate expiration
-        };
         // this is the only document in the categories collection before revalidation
         const mockOldCategory = {
             "href": "https://api.spotify.com/v1/browse/categories/toplists",
@@ -155,8 +159,6 @@ describe("Categories collection revalidation", () => {
             "name": "Top Lists"
         }
         await db.collection('categories').insertOne(mockOldCategory);
-        await db.collection('collectionsUpdates').insertOne(lastUpdates);
-
         // load categories to update collection
         await loadCategories(mock_access_token, db);
         const categories = await db.collection('categories').find({}).toArray();
@@ -173,11 +175,6 @@ describe("Categories collection revalidation", () => {
         };
         mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify(mockSpotifyError), { status: 401 })));
         // add mock last_updated value for categories to trigger revalidation
-        const lastUpdates = {
-            name: "categories",
-            last_updated: 10 // low number to simulate expiration
-        };
-        await db.collection('collectionsUpdates').insertOne(lastUpdates);
         const result = await loadCategories(mock_access_token, db);
         expect(result).toEqual(mockSpotifyError);
     });

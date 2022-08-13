@@ -50,6 +50,8 @@ describe("Fetch genres from database or make Spotify API call", () => {
 
     afterEach(async () => {
         await db.collection('collectionsUpdates').deleteMany({});
+        await db.collection('genres').deleteMany({});
+        // await db.collection('collectionsUpdates').deleteMany({});
     });
 
     // afterAll(() => {
@@ -68,9 +70,7 @@ describe("Fetch genres from database or make Spotify API call", () => {
      * This requires that entries be loaded into the mock database
      */
     it("correctly retreives all genres from the database", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(Promise.resolve({
-            json: () => Promise.resolve({ genres: ['mockGenre'] }),
-        })));
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
 
         const mockGenres = generateMockGenres(expectedLength);
         await db.collection('genres').insertMany(mockGenres);
@@ -109,9 +109,17 @@ describe("Genre collection revalidation", () => {
         db = promise.db;
     });
 
+    beforeEach(async () => {
+        const lastUpdates = {
+            name: "genres",
+            last_updated: 10
+        };
+        await db.collection('collectionsUpdates').insertOne(lastUpdates);
+    })
+
     afterEach(async () => {
         await db.collection('genres').deleteMany({});
-        await db.collection('collectionsUpdates').deleteMany({});
+        // await db.collection('collectionsUpdates').deleteMany({});
     })
 
     // afterAll(() => {
@@ -128,9 +136,7 @@ describe("Genre collection revalidation", () => {
     });
 
     it("correctly updates genres last_updated timestamp after one hour", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(Promise.resolve({
-            json: () => Promise.resolve({ genres: ['mockGenre'] }),
-        })));
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
         const lastUpdates = {
             name: "genres",
             last_updated: 10
@@ -141,7 +147,7 @@ describe("Genre collection revalidation", () => {
         };
         const res = await db.collection('genres').insertOne(mockGenre);
         console.log('insert mock genre:', res);
-        await db.collection('collectionsUpdates').insertOne(lastUpdates);
+        // await db.collection('collectionsUpdates').insertOne(lastUpdates);
         // load genres to trigger revalidatation
         await loadGenres(mock_token, db);
         const genresUpdate = await db.collection('collectionsUpdates').findOne({ name: "genres" });
@@ -152,9 +158,7 @@ describe("Genre collection revalidation", () => {
     });
 
     it("correctly refreshes genres after one hour", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(Promise.resolve({
-            json: () => Promise.resolve({ genres: ['mockGenre'] }),
-        })));
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
         const lastUpdates = {
             name: "genres",
             last_updated: 10 // low number to simulate expiration
@@ -165,7 +169,7 @@ describe("Genre collection revalidation", () => {
             name: "acoustic",
         }
         await db.collection('genres').insertOne(mockOldCategory);
-        await db.collection('collectionsUpdates').insertOne(lastUpdates);
+        // await db.collection('collectionsUpdates').insertOne(lastUpdates);
         // load genres to update collection
         await loadGenres(mock_token, db);
         const genres = await db.collection('genres').find({}).toArray();
