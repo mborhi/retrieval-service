@@ -52,12 +52,12 @@ describe("Fetch categories from database or make Spotify API call", () => {
     });
 
     it('correctly retreives all categories from the database', async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(new Response({ "test": 100 })));
+        // mockedFetch.mockReturnValue(Promise.resolve(new Response({ "test": 100 })));
         // load category entries into database
         const mockCategories = generateMockCategories(expectedLength);
         await db.collection("categories").insertMany(mockCategories);
         // set expire time for categories
-        // const inserted = await db.collection("collectionsUpdates").findOne({ name: "categories" });
+        const inserted = await db.collection("collectionsUpdates").findOne({ name: "categories" });
         // console.log('inserted update token:', inserted);
         const categories = await loadCategories(mock_access_token, db);
         // the retreived categories should always include 50 elements, the number of categories maintained by Spotify
@@ -138,36 +138,13 @@ describe("Categories collection revalidation", () => {
         }
         await db.collection('categories').insertOne(mockOldCategory);
         // load categories to trigger revalidatation
-        await loadCategories(mock_access_token, db);
+        const results = await loadCategories(mock_access_token, db);
         const categoriesUpdates = await db.collection('collectionsUpdates').findOne({ name: "categories" });
         const last_updated = await categoriesUpdates.last_updated;
 
         expect(last_updated).toBeGreaterThanOrEqual(Date.now() - 4000); // four seconds to account for db query delay
         expect(last_updated).toBeLessThan(Date.now() + 3000);
-    });
-
-    it("correctly refreshes categories after one hour", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({
-            categories: {
-                items: [mockCategory]
-            }
-        }))));
-        // this is the only document in the categories collection before revalidation
-        const mockOldCategory = {
-            "href": "https://api.spotify.com/v1/browse/categories/toplists",
-            "icons": [{
-                "height": { "$numberInt": "275" },
-                "url": "https://t.scdn.co/media/derived/toplists_11160599e6a04ac5d6f2757f5511778f_0_0_275_275.jpg",
-                "width": { "$numberInt": "275" }
-            }],
-            "id": "toplists",
-            "name": "Top Lists"
-        }
-        await db.collection('categories').insertOne(mockOldCategory);
-        // load categories to update collection
-        await loadCategories(mock_access_token, db);
-        const categories = await db.collection('categories').find({}).toArray();
-        expect(categories).toEqual([{ ...mockCategory, "_id": expect.anything() }]);
+        expect(results).toEqual([{ ...mockCategory, "_id": expect.anything() }]);
     });
 
     it('correctly catches Spotify Web API fetch error on revalidation', async () => {

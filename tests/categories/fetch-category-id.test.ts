@@ -1,5 +1,4 @@
 jest.mock('node-fetch');
-
 import { PlaylistNameAndTracks } from '../../interfaces';
 import fetch from 'node-fetch';
 import { getCategoryPlaylist } from '../../src/utils/categories/fetch-category-id';

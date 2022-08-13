@@ -69,7 +69,7 @@ describe("Fetch genres from database or make Spotify API call", () => {
      * This requires that entries be loaded into the mock database
      */
     it("correctly retreives all genres from the database", async () => {
-        mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
+        // mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify({ genres: ['mockGenre'] }))));
 
         const mockGenres = generateMockGenres(expectedLength);
         await db.collection('genres').insertMany(mockGenres);
