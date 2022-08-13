@@ -168,20 +168,16 @@ describe("Category playlist and track retrieval", () => {
 
         const results = await getCategoryPlaylist(mock_access_token, "hiphop");
         expect(results).toEqual(expected);
-    })
-});
+    });
 
-describe("Category playlist and tracks error handling", () => {
-
-    const mock_access_token = "mock-access-token";
-    const mock_fetch_error = {
-        "error": {
-            "status": 401,
-            "message": "Invalid access token"
-        }
-    }
 
     it("correctly catches and returns if category playlist fetch fails", async () => {
+        const mock_fetch_error = {
+            "error": {
+                "status": 401,
+                "message": "Invalid access token"
+            }
+        }
         mockedFetch.mockReturnValue(Promise.resolve(new Response(JSON.stringify(mock_fetch_error), { "status": 401 })));
         const results = await getCategoryPlaylist(mock_access_token, "hiphop");
         expect(results).toEqual(mock_fetch_error);
