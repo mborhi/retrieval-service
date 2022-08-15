@@ -10,11 +10,6 @@ const PORT = process.env.SERVER_PORT || 3000;
 app.use('/categories', categoriesRouter);
 app.use('/genres', genresRouter);
 
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
-
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
