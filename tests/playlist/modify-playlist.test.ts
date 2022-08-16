@@ -173,6 +173,24 @@ describe("Add/Remove from playlist", () => {
         total: 0
     };
 
+    const mock_track_response = {
+        track: {
+            name: 'mock-track',
+            preview_url: 'mock-preview',
+            uri: "exists",
+            track_number: 0,
+            album: {
+                images: [{ url: 'album-image' }]
+            }
+        }
+    }
+
+    const mock_tracks_response = { // SpotifyApi.SinglePlaylistResponse
+        tracks: {
+            items: [mock_track_response]
+        }
+    }
+
     it("correctly returns a snapshot id if operation is successful", async () => {
         const snapshot: SpotifyApi.PlaylistSnapshotResponse = {
             snapshot_id: 'mock-snapshot'
@@ -181,11 +199,45 @@ describe("Add/Remove from playlist", () => {
             JSON.stringify(mock_playlists_response), { status: 200 }
         )));
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_tracks_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(snapshot), { status: 201 }
         )));
         const result = await modifyPlaylistTracks(mock_token, mock_user_id, "mock-uri", "add");
         expect(result).toEqual('mock-snapshot');
     });
+
+    it("doesn't add track if it already exists in the playlist", async () => {
+        const mock_track_response = {
+            track: {
+                name: 'mock-track',
+                preview_url: 'mock-preview',
+                uri: "exists",
+                track_number: 0,
+                album: {
+                    images: [{ url: 'album-image' }]
+                }
+            }
+        }
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_playlists_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_tracks_response), { status: 200 }
+        )));
+        // mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+        //     JSON.stringify(mock_track_response), { status: 201 }
+        // )));
+        const expected = {
+            error: {
+                status: 423,
+                message: "Track already exists in playlist"
+            }
+        }
+        const result = await modifyPlaylistTracks(mock_token, mock_user_id, "exists", "POST");
+        expect(result).toEqual(expected);
+    })
 
     it("correctly returns Spotify Web API error responses", async () => {
         const mock_error = {
