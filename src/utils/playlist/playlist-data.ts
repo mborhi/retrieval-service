@@ -2,7 +2,6 @@ import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData } from '../../../interfaces/index';
 import { responseIsError } from '../fetch-utils';
-import { addToPlaylist } from './modify-playlist';
 
 const baseURL = process.env.SPOTIFY_BASE_URL;
 
@@ -59,11 +58,4 @@ export const getPlayListTracks = async (token: string, playlist: SpotifyApi.Play
         console.error("Error: ", error);
         throw error;
     }
-}
-
-export const findPlaylist = (playlists: SpotifyApi.PlaylistObjectSimplified[], name: string, token: string) => {
-    let playlist = playlists.find((playlist) => playlist.name === name);
-    return playlist.id ?? null;
-    // addNewPlaylist(token)
-
 }
