@@ -145,20 +145,63 @@ describe("Get playlist", () => {
 
 describe("Add to playlist", () => {
 
-    it("correctly adds the given track to the playlist", async () => {
+    const mock_playlist_obj: SpotifyApi.PlaylistObjectSimplified = {
+        tracks: {
+            href: 'https://mock',
+            total: 1
+        },
+        collaborative: false,
+        description: 'Songs discovered on the Spotify Quick Discover web app.',
+        id: 'mockid',
+        images: [],
+        name: 'Quick Discover Finds', // add this to env
+        owner: undefined,
+        public: false,
+        snapshot_id: '',
+        type: 'playlist',
+        href: '',
+        external_urls: undefined,
+        uri: ''
+    }
+    const mock_playlists_response: SpotifyApi.ListOfUsersPlaylistsResponse = {
+        href: '',
+        items: [mock_playlist_obj],
+        limit: 0,
+        next: '',
+        offset: 0,
+        previous: '',
+        total: 0
+    };
 
-    });
-
-    it("correctly creates a new playlist if the user doesn't have one yet", () => {
-
+    it("correctly returns a snapshot id of track is added successfully", async () => {
+        const snapshot: SpotifyApi.PlaylistSnapshotResponse = {
+            snapshot_id: 'mock-snapshot'
+        }
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_playlists_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(snapshot), { status: 201 }
+        )));
+        const result = await addToPlaylist(mock_token, mock_user_id, "mock-uri");
+        expect(result).toEqual('mock-snapshot');
     });
 
     it("correctly returns Spotify Web API error responses", async () => {
-
-    });
-
-    it("correctly handles errors formatting data", async () => {
-
+        const mock_error = {
+            error: {
+                status: 401,
+                message: "Invalid token"
+            }
+        };
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_playlists_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_error), { status: 401 }
+        )));
+        const result = await addToPlaylist(mock_token, mock_user_id, "mock-uri");
+        expect(result).toEqual(mock_error);
     });
 
 });
