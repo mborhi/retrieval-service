@@ -17,6 +17,7 @@ API documentation can be found on Postman.
 ### Architecture
 
 This microservice exposes four endpoints. Two for retrieving tracks and information of genres, and two for retrieving tracks and infromation of categories.
+
 ---
 
 ## Deploying
