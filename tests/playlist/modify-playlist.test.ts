@@ -103,12 +103,22 @@ describe("Get playlist", () => {
             external_urls: undefined,
             uri: ''
         }
-
+        const mock_tracks_response: any = { // SpotifyApi.SinglePlaylistResponse
+            tracks: {
+                items: [],
+            }
+        }
+        // mock get users playlist resposne
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(mock_playlists_response), { status: 200 }
         )));
+        // mock create new playlist response
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(mock_create_response), { status: 201 }
+        )));
+        // mock get playlist tracks response
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_tracks_response), { status: 200 }
         )));
 
         const results = await getUserPlaylistTracks(mock_token, mock_user_id);
@@ -128,10 +138,6 @@ describe("Get playlist", () => {
         )));
         const results = await getUserPlaylistTracks(mock_token, mock_user_id);
         expect(results).toEqual(error_response);
-    });
-
-    it("correctly handles errors formatting data", async () => {
-
     });
 
 
