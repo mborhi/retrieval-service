@@ -1,4 +1,4 @@
-import { getUserPlaylistTracks, addToPlaylist, removeFromPlaylist, createNewPlaylist } from '../../src/utils/playlist/modify-playlist';
+import { getUserPlaylistTracks, createNewPlaylist, modifyPlaylistTracks } from '../../src/utils/playlist/modify-playlist'; // addToPlaylist, removeFromPlaylist,
 import fetch from 'node-fetch'
 import { TrackData } from '../../interfaces';
 jest.mock('node-fetch');
@@ -143,7 +143,7 @@ describe("Get playlist", () => {
 
 });
 
-describe("Add to playlist", () => {
+describe("Add/Remove from playlist", () => {
 
     const mock_playlist_obj: SpotifyApi.PlaylistObjectSimplified = {
         tracks: {
@@ -173,7 +173,7 @@ describe("Add to playlist", () => {
         total: 0
     };
 
-    it("correctly returns a snapshot id of track is added successfully", async () => {
+    it("correctly returns a snapshot id if operation is successful", async () => {
         const snapshot: SpotifyApi.PlaylistSnapshotResponse = {
             snapshot_id: 'mock-snapshot'
         }
@@ -183,7 +183,7 @@ describe("Add to playlist", () => {
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(snapshot), { status: 201 }
         )));
-        const result = await addToPlaylist(mock_token, mock_user_id, "mock-uri");
+        const result = await modifyPlaylistTracks(mock_token, mock_user_id, "mock-uri", "add");
         expect(result).toEqual('mock-snapshot');
     });
 
@@ -200,25 +200,10 @@ describe("Add to playlist", () => {
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(mock_error), { status: 401 }
         )));
-        const result = await addToPlaylist(mock_token, mock_user_id, "mock-uri");
+        const result = await modifyPlaylistTracks(mock_token, mock_user_id, "mock-uri", "add");
         expect(result).toEqual(mock_error);
     });
 
-});
-
-describe("Remove from playlist", () => {
-
-    it("correctly removes the specified track from the playlist", async () => {
-
-    });
-
-    it("correctly returns Spotify Web API error responses", async () => {
-
-    });
-
-    it("correctly handles errors formatting data", async () => {
-
-    });
 });
 
 describe("Create playlist", () => {
