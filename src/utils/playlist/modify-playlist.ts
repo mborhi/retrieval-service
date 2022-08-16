@@ -63,7 +63,7 @@ const getUsersPlaylist = async (token: string, user_id: string, limit = 50, offs
 }
 
 /**
- * Adds the given track to the user's playlist
+ * Adds or delets the given track from the user's playlist based on the specified method
  * Uses the Add Items to Playlist Spotify Web API call:
  * API Reference	https://developer.spotify.com/documentation/web-api/reference/#/operations/add-tracks-to-playlist
  * 
@@ -76,7 +76,7 @@ const getUsersPlaylist = async (token: string, user_id: string, limit = 50, offs
  * @param user_id the id of the user
  * @param track_uri the uri of the track to add
  */
-export const addToPlaylist = async (token: string, user_id: string, track_uri: string) => {
+export const modifyPlaylistTracks = async (token: string, user_id: string, track_uri: string, method: string) => {
     const quickDiscoverPlaylist = await getUsersPlaylist(token, user_id);
     const playlist_id = await quickDiscoverPlaylist.id;
     // add to playlist
@@ -86,7 +86,7 @@ export const addToPlaylist = async (token: string, user_id: string, track_uri: s
     }
     const url = baseURL + `/playlists/${playlist_id}/tracks?` + stringify(queryParams);
     const response = await fetch(url, {
-        method: "POST",
+        method: method,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
@@ -100,11 +100,7 @@ export const addToPlaylist = async (token: string, user_id: string, track_uri: s
         console.error(error);
         throw error;
     }
-};
-
-export const removeFromPlaylist = async (token: string) => {
-
-};
+}
 
 /**
  * Creates a new private playlist with the name and description specified in the endpoints config
@@ -145,3 +141,70 @@ export const createNewPlaylist = async (token: string, user_id: string): Promise
     }
 }
 
+/**
+ * Adds the given track to the user's playlist
+ * Uses the Add Items to Playlist Spotify Web API call:
+ * API Reference	https://developer.spotify.com/documentation/web-api/reference/#/operations/add-tracks-to-playlist
+ *
+ * Endpoint	        https://api.spotify.com/v1/playlists/{playlist_id}/tracks
+ *
+ * HTTP Method	    POST
+ *
+ * OAuth	        Required
+ * @param token the user's OAuth2 access token
+ * @param user_id the id of the user
+ * @param track_uri the uri of the track to add
+ */
+/*
+export const addToPlaylist = async (token: string, user_id: string, track_uri: string) => {
+    const quickDiscoverPlaylist = await getUsersPlaylist(token, user_id);
+    const playlist_id = await quickDiscoverPlaylist.id;
+    // add to playlist
+    const queryParams = {
+        position: 0,
+        uris: track_uri
+    }
+    const url = baseURL + `/playlists/${playlist_id}/tracks?` + stringify(queryParams);
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    if (responseIsError(response)) return await response.json();
+    try {
+        const snapshot: SpotifyApi.PlaylistSnapshotResponse = await response.json();
+        return snapshot.snapshot_id;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const removeFromPlaylist = async (token: string, user_id: string, track_uri: string) => {
+    const quickDiscoverPlaylist = await getUsersPlaylist(token, user_id);
+    const playlist_id = await quickDiscoverPlaylist.id;
+    // add to playlist
+    const queryParams = {
+        position: 0,
+        uris: track_uri
+    }
+    const url = baseURL + `/playlists/${playlist_id}/tracks?` + stringify(queryParams);
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    if (responseIsError(response)) return await response.json();
+    try {
+        const snapshot: SpotifyApi.PlaylistSnapshotResponse = await response.json();
+        return snapshot.snapshot_id;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+*/
