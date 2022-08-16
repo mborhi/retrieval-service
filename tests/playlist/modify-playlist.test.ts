@@ -1,9 +1,67 @@
-import { getPlaylist, addToPlaylist, removeFromPlaylist } from '../../src/utils/playlist/modify-playlist';
+import { getUserPlaylistTracks, addToPlaylist, removeFromPlaylist } from '../../src/utils/playlist/modify-playlist';
+import fetch from 'node-fetch'
+import { TrackData } from '../../interfaces';
+jest.mock('node-fetch');
+const { Response } = jest.requireActual('node-fetch');
+
+const mockedFetch = fetch as any;
 
 describe("Get playlist", () => {
 
-    it("correctly retrieves the playlist", async () => {
+    const mock_token = "mock-token";
+    const mock_user_id = "mock-user-id";
+    const mock_track = "spotify:mock:track-uri";
 
+    it("correctly retrieves the user's playlist's tracks", async () => {
+        const mock_playlist_obj: SpotifyApi.PlaylistObjectSimplified = {
+            tracks: {
+                href: 'https://mock',
+                total: 1
+            },
+            collaborative: false,
+            description: 'Songs discovered on the Spotify Quick Discover web app.',
+            id: 'mockid',
+            images: [],
+            name: 'Spotify Quick Discover Finds', // add this to env
+            owner: undefined,
+            public: false,
+            snapshot_id: '',
+            type: 'playlist',
+            href: '',
+            external_urls: undefined,
+            uri: ''
+        }
+        const mock_playlists_response: SpotifyApi.ListOfUsersPlaylistsResponse = {
+            href: '',
+            items: [mock_playlist_obj],
+            limit: 0,
+            next: '',
+            offset: 0,
+            previous: '',
+            total: 0
+        };
+        const mock_track_obj = {
+            name: "mock-track",
+            previewURL: "mock-preview",
+            trackURI: mock_track,
+            trackNum: 0,
+            trackAlbumImage: "album-image"
+        }
+        const mock_tracks_response = { // SpotifyApi.SinglePlaylistResponse
+            tracks: {
+                items: [mock_track_obj]
+            }
+        }
+
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_playlists_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_tracks_response), { status: 200 }
+        )));
+        const results = await getUserPlaylistTracks(mock_token, mock_user_id);
+        const expected: TrackData[] = [mock_track_obj];
+        expect(results).toEqual(expected);
     });
 
     it("correctly creates a new playlist if user doesn't have one yet", async () => {
