@@ -1,6 +1,6 @@
 import express from 'express';
 import { dataIsError } from '../utils/fetch-utils';
-import { addToPlaylist, getUserPlaylistTracks } from '../utils/playlist/modify-playlist';
+import { getUserPlaylistTracks, modifyPlaylistTracks } from '../utils/playlist/modify-playlist';
 
 const router = express.Router();
 
@@ -29,20 +29,27 @@ router.get('/', async (req, res) => {
     }
 });
 
-// adding a track to the user's paylist
-router.put('/add', async (req, res) => {
-    // get access token, and user id
+router.all('/tracks', async (req, res) => {
+    if (req.method !== "POST" && req.method !== "DELETE") {
+        res.status(403).json({
+            error: {
+                status: 403,
+                message: `${req.method} is not a valid request method for this endpoint`
+            }
+        });
+        res.end();
+    }
     const access_token = req.headers.access_token as string; // validated at API gateway
     const user_id = req.headers.user_id as string; // validated at API gateway
     const track_uri = req.query.track_uri as string;
     try {
-        const snapshot_id = await addToPlaylist(access_token, user_id, track_uri);
-        if (!dataIsError(snapshot_id)) {
+        const results = await modifyPlaylistTracks(access_token, user_id, track_uri, req.method);
+        if (!dataIsError(results)) {
             res.status(200).json({
-                data: snapshot_id
+                data: results
             });
         } else {
-            res.send(snapshot_id); // Spotify Web API error
+            res.send(results); // Spotify Web API error
         }
     } catch (error) {
         console.error(error);
@@ -53,11 +60,6 @@ router.put('/add', async (req, res) => {
             }
         });
     }
-});
-
-// removing a track from the user's playlist
-router.delete('/remove', async (req, res) => {
-
 });
 
 export default router;
