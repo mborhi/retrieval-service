@@ -77,7 +77,29 @@ const getUsersPlaylist = async (token: string, user_id: string, limit = 50, offs
  * @param track_uri the uri of the track to add
  */
 export const addToPlaylist = async (token: string, user_id: string, track_uri: string) => {
-    // const quickDiscoverPlaylist = await findOrCreatePlaylist(token, user_id,);
+    const quickDiscoverPlaylist = await getUsersPlaylist(token, user_id);
+    const playlist_id = await quickDiscoverPlaylist.id;
+    // add to playlist
+    const queryParams = {
+        position: 0,
+        uris: track_uri
+    }
+    const url = baseURL + `/playlists/${playlist_id}/tracks?` + stringify(queryParams);
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    if (responseIsError(response)) return await response.json();
+    try {
+        const snapshot: SpotifyApi.PlaylistSnapshotResponse = await response.json();
+        return snapshot.snapshot_id;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 };
 
 export const removeFromPlaylist = async (token: string) => {

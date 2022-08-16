@@ -1,7 +1,9 @@
+import endpointsConfig from '../../../endpoints.config';
 import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData } from '../../../interfaces/index';
 import { responseIsError } from '../fetch-utils';
+import { createNewPlaylist } from './modify-playlist';
 
 const baseURL = process.env.SPOTIFY_BASE_URL;
 
@@ -58,4 +60,9 @@ export const getPlayListTracks = async (token: string, playlist: SpotifyApi.Play
         console.error("Error: ", error);
         throw error;
     }
+}
+
+export const findOrCreatePlaylist = async (token: string, user_id: string, playlists: SpotifyApi.PlaylistObjectSimplified[]) => {
+    const quickDiscoverPlaylist = playlists.find((playlist) => playlist.name === endpointsConfig.QuickDiscoverPlaylistName) || await createNewPlaylist(token, user_id);
+    return quickDiscoverPlaylist;
 }
