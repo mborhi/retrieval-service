@@ -1,10 +1,24 @@
 import endpointsConfig from "../../../endpoints.config";
 import fetch from "node-fetch";
 import { stringify } from 'querystring';
-import { responseIsError } from '../fetch-utils';
-import { getPlayListTracks } from "./playlist-data";
+import { dataIsError, responseIsError } from '../fetch-utils';
+import { findOrCreatePlaylist, getPlayListTracks } from "./playlist-data";
 
 const baseURL = endpointsConfig.SpotifyAPIBaseURL;
+
+/**
+ * Retrieves the tracks of the given user's playlist
+ * @param token the users OAuth2 access token
+ * @param user_id the id of the user
+ * @param limit the maximum number of playlists to recieve
+ * @param offset the offset of playlists
+ */
+export const getUserPlaylistTracks = async (token: string, user_id: string, limit = 50, offset = 0) => {
+    const playlist = await getUsersPlaylist(token, user_id, limit, offset);
+    if (dataIsError(playlist)) return playlist;
+    const tracks = await getPlayListTracks(token, playlist);
+    return tracks;
+};
 
 /**
  * Retrieves the given user's paylists
@@ -22,7 +36,7 @@ const baseURL = endpointsConfig.SpotifyAPIBaseURL;
  * @param limit the maximum number of playlists to recieve
  * @param offset the offset of playlists
  */
-export const getUserPlaylistTracks = async (token: string, user_id: string, limit = 50, offset = 0) => {
+const getUsersPlaylist = async (token: string, user_id: string, limit = 50, offset = 0) => {
     const queryParams = {
         limit: limit,
         offset: offset
@@ -40,23 +54,30 @@ export const getUserPlaylistTracks = async (token: string, user_id: string, limi
         const data: SpotifyApi.ListOfUsersPlaylistsResponse = await response.json();
         // find the playlist
         const playlists = data.items;
-        const quickDiscoverPlaylist = playlists.find((playlist) => playlist.name === endpointsConfig.QuickDiscoverPlaylistName) || await createNewPlaylist(token, user_id);
-        // get the tracks
-        const tracks = await getPlayListTracks(token, quickDiscoverPlaylist);
-        return tracks; // SpotifyError will be handled by caller
+        const quickDiscoverPlaylist = await findOrCreatePlaylist(token, user_id, playlists);
+        return quickDiscoverPlaylist;
     } catch (error) {
         console.error(error);
         throw error;
     }
+}
 
-};
-
-const getUserPlaylist = async (token: string) => {
-
-};
-
-export const addToPlaylist = async (token: string) => {
-
+/**
+ * Adds the given track to the user's playlist
+ * Uses the Add Items to Playlist Spotify Web API call:
+ * API Reference	https://developer.spotify.com/documentation/web-api/reference/#/operations/add-tracks-to-playlist
+ * 
+ * Endpoint	        https://api.spotify.com/v1/playlists/{playlist_id}/tracks
+ * 
+ * HTTP Method	    POST
+ * 
+ * OAuth	        Required
+ * @param token the user's OAuth2 access token
+ * @param user_id the id of the user
+ * @param track_uri the uri of the track to add
+ */
+export const addToPlaylist = async (token: string, user_id: string, track_uri: string) => {
+    // const quickDiscoverPlaylist = await findOrCreatePlaylist(token, user_id,);
 };
 
 export const removeFromPlaylist = async (token: string) => {
@@ -73,7 +94,7 @@ export const removeFromPlaylist = async (token: string) => {
  * HTTP Method	    POST
  * 
  * OAuth	        Required
- * @param token the users OAuth2 access token
+ * @param token the user's OAuth2 access token
  * @param user_id the id of the user to create playlist for
  * @returns the newly created playlist
  */
