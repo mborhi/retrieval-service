@@ -1,15 +1,15 @@
-import { getUserPlaylistTracks, addToPlaylist, removeFromPlaylist } from '../../src/utils/playlist/modify-playlist';
+import { getUserPlaylistTracks, addToPlaylist, removeFromPlaylist, createNewPlaylist } from '../../src/utils/playlist/modify-playlist';
 import fetch from 'node-fetch'
 import { TrackData } from '../../interfaces';
 jest.mock('node-fetch');
 const { Response } = jest.requireActual('node-fetch');
 
 const mockedFetch = fetch as any;
+const mock_token = "mock-token";
+const mock_user_id = "mock-user-id";
 
 describe("Get playlist", () => {
 
-    const mock_token = "mock-token";
-    const mock_user_id = "mock-user-id";
     const mock_track_uri = "spotify:mock:track-uri";
 
     it("correctly retrieves the user's playlist's tracks", async () => {
@@ -77,11 +77,57 @@ describe("Get playlist", () => {
     });
 
     it("correctly creates a new playlist if user doesn't have one yet", async () => {
+        const mock_playlists_response: SpotifyApi.ListOfUsersPlaylistsResponse = {
+            href: '',
+            items: [],
+            limit: 0,
+            next: '',
+            offset: 0,
+            previous: '',
+            total: 0
+        }
+
+        const mock_create_response: SpotifyApi.CreatePlaylistResponse = {
+            followers: undefined,
+            tracks: undefined,
+            collaborative: false,
+            description: '',
+            id: 'mockid',
+            images: [],
+            name: 'Quick Discover Finds',
+            owner: undefined,
+            public: false,
+            snapshot_id: '',
+            type: 'playlist',
+            href: '',
+            external_urls: undefined,
+            uri: ''
+        }
+
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_playlists_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_create_response), { status: 201 }
+        )));
+
+        const results = await getUserPlaylistTracks(mock_token, mock_user_id);
+        expect(results).toEqual([]); // newly created playlist should have no tracks
 
     });
 
     it("correctly returns Spotify Web API error responses", async () => {
-
+        const error_response = {
+            error: {
+                status: 401,
+                message: "Invalid token"
+            }
+        };
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(
+            JSON.stringify(error_response), { status: 401 }
+        )));
+        const results = await getUserPlaylistTracks(mock_token, mock_user_id);
+        expect(results).toEqual(error_response);
     });
 
     it("correctly handles errors formatting data", async () => {
@@ -124,4 +170,45 @@ describe("Remove from playlist", () => {
     it("correctly handles errors formatting data", async () => {
 
     });
+});
+
+describe("Create playlist", () => {
+
+    it("correctly creates a new playlist with valid values", async () => {
+
+        const mock_create_response: SpotifyApi.CreatePlaylistResponse = {
+            followers: undefined,
+            tracks: undefined,
+            collaborative: false,
+            description: '',
+            id: 'mockid',
+            images: [],
+            name: 'Quick Discover Finds',
+            owner: undefined,
+            public: false,
+            snapshot_id: '',
+            type: 'playlist',
+            href: '',
+            external_urls: undefined,
+            uri: ''
+        }
+
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(
+            JSON.stringify(mock_create_response), { status: 201 }
+        )));
+
+        const results = await createNewPlaylist(mock_token, mock_user_id);
+        expect(results).toEqual(mock_create_response);
+
+    });
+
+    it("correctly returns a Spotify Error Object response", async () => {
+        const mock_error = { error: { status: 401, message: "Invalid token" } }
+        mockedFetch.mockReturnValue(Promise.resolve(new Response(
+            JSON.stringify(mock_error), { status: 401 }
+        )));
+        const results = await createNewPlaylist(mock_token, mock_user_id);
+        expect(results).toEqual(mock_error);
+    });
+
 });
