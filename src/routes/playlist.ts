@@ -1,6 +1,6 @@
 import express from 'express';
 import { dataIsError } from '../utils/fetch-utils';
-import { getUserPlaylistTracks } from '../utils/playlist/modify-playlist';
+import { addToPlaylist, getUserPlaylistTracks } from '../utils/playlist/modify-playlist';
 
 const router = express.Router();
 
@@ -31,7 +31,28 @@ router.get('/', async (req, res) => {
 
 // adding a track to the user's paylist
 router.put('/add', async (req, res) => {
-
+    // get access token, and user id
+    const access_token = req.headers.access_token as string; // validated at API gateway
+    const user_id = req.headers.user_id as string; // validated at API gateway
+    const track_uri = req.query.track_uri as string;
+    try {
+        const snapshot_id = await addToPlaylist(access_token, user_id, track_uri);
+        if (!dataIsError(snapshot_id)) {
+            res.status(200).json({
+                data: snapshot_id
+            });
+        } else {
+            res.send(snapshot_id); // Spotify Web API error
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: {
+                status: 500,
+                message: "Internal server error"
+            }
+        });
+    }
 });
 
 // removing a track from the user's playlist
