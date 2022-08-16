@@ -8,4 +8,5 @@ export default {
     MongoURI: process.env.MONGODB_URI ?? '',
     MongoDB: process.env.MONGODB_DB ?? '',
     MockMongoDB: process.env.MOCK_MONGODB_DB ?? '',
+    QuickDiscoverPlaylistName: process.env.DISCOVER_PLAYLIST_NAME ?? 'Quick Discover Finds'
 }

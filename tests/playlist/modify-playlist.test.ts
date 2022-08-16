@@ -10,7 +10,7 @@ describe("Get playlist", () => {
 
     const mock_token = "mock-token";
     const mock_user_id = "mock-user-id";
-    const mock_track = "spotify:mock:track-uri";
+    const mock_track_uri = "spotify:mock:track-uri";
 
     it("correctly retrieves the user's playlist's tracks", async () => {
         const mock_playlist_obj: SpotifyApi.PlaylistObjectSimplified = {
@@ -22,7 +22,7 @@ describe("Get playlist", () => {
             description: 'Songs discovered on the Spotify Quick Discover web app.',
             id: 'mockid',
             images: [],
-            name: 'Spotify Quick Discover Finds', // add this to env
+            name: 'Quick Discover Finds', // add this to env
             owner: undefined,
             public: false,
             snapshot_id: '',
@@ -40,16 +40,28 @@ describe("Get playlist", () => {
             previous: '',
             total: 0
         };
-        const mock_track_obj = {
+        const mock_track_response = {
+            track: {
+                name: 'mock-track',
+                preview_url: 'mock-preview',
+                uri: mock_track_uri,
+                track_number: 0,
+                album: {
+                    images: [{ url: 'album-image' }]
+                }
+            }
+        }
+        const expectedTrackData = {
             name: "mock-track",
             previewURL: "mock-preview",
-            trackURI: mock_track,
+            trackURI: mock_track_uri,
             trackNum: 0,
             trackAlbumImage: "album-image"
         }
+
         const mock_tracks_response = { // SpotifyApi.SinglePlaylistResponse
             tracks: {
-                items: [mock_track_obj]
+                items: [mock_track_response]
             }
         }
 
@@ -60,7 +72,7 @@ describe("Get playlist", () => {
             JSON.stringify(mock_tracks_response), { status: 200 }
         )));
         const results = await getUserPlaylistTracks(mock_token, mock_user_id);
-        const expected: TrackData[] = [mock_track_obj];
+        const expected: TrackData[] = [expectedTrackData];
         expect(results).toEqual(expected);
     });
 
