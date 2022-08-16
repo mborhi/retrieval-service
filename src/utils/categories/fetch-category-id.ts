@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import { stringify } from 'querystring';
 import { TrackData, PlaylistNameAndTracks } from '../../../interfaces/index';
 import { dataIsError, responseIsError } from '../fetch-utils';
-import { getPlayListTracks } from '../playlist/playlist-data';
+import { getFormattedListOfTracks, getPlayListTracks } from '../playlist/playlist-data';
 
 const baseURL = process.env.SPOTIFY_BASE_URL;
 
@@ -61,7 +61,7 @@ export const getCategoryPlaylist = async (token: string, categoryID: string, cou
  */
 const getPlaylistsData = async (token: string, playlists: SpotifyApi.PlaylistObjectSimplified[]): Promise<PlaylistNameAndTracks[]> => {
     const listOfPlaylistsTracks = playlists.map(async (playlist) => {
-        const playlistTracks = await getPlayListTracks(token, playlist);
+        const playlistTracks = await getFormattedListOfTracks(token, playlist);
         if (dataIsError(playlistTracks)) {
             return playlistTracks as SpotifyApi.ErrorObject; // dataIsError asserts that this is an error object
         }

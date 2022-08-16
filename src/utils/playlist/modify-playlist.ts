@@ -2,12 +2,12 @@ import endpointsConfig from "../../../endpoints.config";
 import fetch from "node-fetch";
 import { stringify } from 'querystring';
 import { dataIsError, responseIsError } from '../fetch-utils';
-import { findOrCreatePlaylist, getPlayListTracks } from "./playlist-data";
+import { filterTracksToAdd, findOrCreatePlaylist, getFormattedListOfTracks, getPlayListTracks } from "./playlist-data";
 
 const baseURL = endpointsConfig.SpotifyAPIBaseURL;
 
 /**
- * Retrieves the tracks of the given user's playlist
+ * Retrieves the tracks of the given user's quick discover playlist
  * @param token the users OAuth2 access token
  * @param user_id the id of the user
  * @param limit the maximum number of playlists to recieve
@@ -16,7 +16,7 @@ const baseURL = endpointsConfig.SpotifyAPIBaseURL;
 export const getUserPlaylistTracks = async (token: string, user_id: string, limit = 50, offset = 0) => {
     const playlist = await getUsersPlaylist(token, user_id, limit, offset);
     if (dataIsError(playlist)) return playlist;
-    const tracks = await getPlayListTracks(token, playlist);
+    const tracks = await getFormattedListOfTracks(token, playlist);
     return tracks;
 };
 
@@ -78,12 +78,20 @@ const getUsersPlaylist = async (token: string, user_id: string, limit = 50, offs
  * @param method the HTTP method to perform the operation with
  */
 export const modifyPlaylistTracks = async (token: string, user_id: string, track_uri: string, method: string) => {
+    // get tracks arleady in the playlist
     const quickDiscoverPlaylist = await getUsersPlaylist(token, user_id);
-    const playlist_id = await quickDiscoverPlaylist.id;
+    const quickDiscoverTracks = await getPlayListTracks(token, quickDiscoverPlaylist);
+    // handle any errors
+    if (dataIsError(quickDiscoverTracks)) return quickDiscoverTracks;
+    // filter tracks to add
+    const trackUriToAdd = filterTracksToAdd(track_uri, quickDiscoverTracks as SpotifyApi.PlaylistTrackObject[]);
+    // if there are no new tracks to add, return error
+    if (trackUriToAdd === '') return { "error": { "message": "Track already exists in playlist", "status": 423 } };
     // add to playlist
+    const playlist_id = await quickDiscoverPlaylist.id;
     const queryParams = {
         position: 0,
-        uris: track_uri
+        uris: trackUriToAdd
     }
     const url = baseURL + `/playlists/${playlist_id}/tracks?` + stringify(queryParams);
     const response = await fetch(url, {
