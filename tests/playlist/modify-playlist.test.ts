@@ -209,26 +209,12 @@ describe("Add/Remove from playlist", () => {
     });
 
     it("doesn't add track if it already exists in the playlist", async () => {
-        const mock_track_response = {
-            track: {
-                name: 'mock-track',
-                preview_url: 'mock-preview',
-                uri: "exists",
-                track_number: 0,
-                album: {
-                    images: [{ url: 'album-image' }]
-                }
-            }
-        }
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(mock_playlists_response), { status: 200 }
         )));
         mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
             JSON.stringify(mock_tracks_response), { status: 200 }
         )));
-        // mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
-        //     JSON.stringify(mock_track_response), { status: 201 }
-        // )));
         const expected = {
             error: {
                 status: 423,
@@ -237,7 +223,21 @@ describe("Add/Remove from playlist", () => {
         }
         const result = await modifyPlaylistTracks(mock_token, mock_user_id, "exists", "POST");
         expect(result).toEqual(expected);
-    })
+    });
+
+    it("correctly deletes an existing track from the playlist", async () => {
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_playlists_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify(mock_tracks_response), { status: 200 }
+        )));
+        mockedFetch.mockReturnValueOnce(Promise.resolve(new Response(
+            JSON.stringify({ snapshot_id: "mock-snapshot" }), { status: 200 }
+        )));
+        const result = await modifyPlaylistTracks(mock_token, mock_user_id, "exists", "DELETE");
+        expect(result).toEqual("mock-snapshot");
+    });
 
     it("correctly returns Spotify Web API error responses", async () => {
         const mock_error = {
