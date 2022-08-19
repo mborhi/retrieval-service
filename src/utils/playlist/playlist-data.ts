@@ -46,19 +46,6 @@ export const getPlayListTracks = async (token: string, playlist: SpotifyApi.Play
         const data: SpotifyApi.SinglePlaylistResponse = await response.json();
         const playlistTracks = data.tracks.items; // list of spotify_tracks
         return playlistTracks;
-        // // for every track in tracks, get the name of the track and the preview url
-        // const listOfPlaylistTracks = playlistTracks.map((playlistTrack) => {
-        //     // add a function to handle filtering of nulls in this
-        //     const trackData = {
-        //         name: playlistTrack.track.name,
-        //         previewURL: playlistTrack.track.preview_url,
-        //         trackURI: playlistTrack.track.uri,
-        //         trackNum: playlistTrack.track.track_number,
-        //         trackAlbumImage: playlistTrack.track.album.images[0].url
-        //     };
-        //     return trackData;
-        // });
-        // return listOfPlaylistTracks;
     } catch (error) {
         console.error("Error: ", error);
         throw error;
@@ -97,7 +84,7 @@ const formatListOfTracks = (tracks: SpotifyApi.PlaylistTrackObject[]): TrackData
  */
 export const getFormattedListOfTracks = async (token: string, playlist: SpotifyApi.PlaylistObjectSimplified, fields = 'tracks', market = 'US'): Promise<TrackData[] | SpotifyApi.ErrorObject> => {
     const tracks = await getPlayListTracks(token, playlist, fields, market);
-    if (dataIsError(tracks)) return tracks as SpotifyApi.ErrorObject;
+    if (dataIsError(tracks)) return tracks;
     const formatted = formatListOfTracks(tracks as SpotifyApi.PlaylistTrackObject[]);
     return formatted;
 }

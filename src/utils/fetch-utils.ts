@@ -17,7 +17,7 @@ export const responseIsError = (response: Response): boolean => {
  * @param data the JSON to check
  * @returns whether the given JSON has an error
  */
-export const dataIsError = (data: any): boolean => {
+export const dataIsError = (data: any): data is SpotifyApi.ErrorObject => {
     if (data.error !== undefined) {
         return true;
     }

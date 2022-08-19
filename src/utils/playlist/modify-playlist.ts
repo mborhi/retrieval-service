@@ -3,6 +3,7 @@ import fetch from "node-fetch";
 import { stringify } from 'querystring';
 import { dataIsError, responseIsError } from '../fetch-utils';
 import { filterTracksToAdd, findOrCreatePlaylist, getFormattedListOfTracks, getPlayListTracks } from "./playlist-data";
+import { ErrorObject, TrackData } from "../../../interfaces";
 
 const baseURL = endpointsConfig.SpotifyAPIBaseURL;
 
@@ -13,7 +14,7 @@ const baseURL = endpointsConfig.SpotifyAPIBaseURL;
  * @param limit the maximum number of playlists to recieve
  * @param offset the offset of playlists
  */
-export const getUserPlaylistTracks = async (token: string, user_id: string, limit = 50, offset = 0) => {
+export const getUserPlaylistTracks = async (token: string, user_id: string, limit = 50, offset = 0): Promise<TrackData[] | SpotifyApi.ErrorObject> => {
     const playlist = await getUsersPlaylists(token, user_id, limit, offset);
     if (dataIsError(playlist)) return playlist;
     const tracks = await getFormattedListOfTracks(token, playlist);
@@ -63,7 +64,7 @@ const getUsersPlaylists = async (token: string, user_id: string, limit = 50, off
 }
 
 /**
- * Adds or delets the given track from the user's playlist based on the specified method
+ * Adds or deletes the given track from the user's playlist based on the specified method
  * Uses the Add Items to Playlist Spotify Web API call:
  * API Reference	https://developer.spotify.com/documentation/web-api/reference/#/operations/add-tracks-to-playlist
  * 
@@ -77,7 +78,7 @@ const getUsersPlaylists = async (token: string, user_id: string, limit = 50, off
  * @param track_uri the uri of the track to add
  * @param method the HTTP method to perform the operation with
  */
-export const modifyPlaylistTracks = async (token: string, user_id: string, track_uri: string, method: string) => {
+export const modifyPlaylistTracks = async (token: string, user_id: string, track_uri: string, method: string): Promise<SpotifyApi.ErrorObject | ErrorObject | string> => {
     const quickDiscoverPlaylist = await getUsersPlaylists(token, user_id);
     const quickDiscoverTracks = await getPlayListTracks(token, quickDiscoverPlaylist);
     if (dataIsError(quickDiscoverTracks)) return quickDiscoverTracks;

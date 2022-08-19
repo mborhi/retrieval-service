@@ -13,7 +13,7 @@ import { dataIsError, responseIsError } from "../fetch-utils";
  * @returns {Promise<CollectionMember[]>} the list of categories
  * @throws Will throw an error if categories cannot be retrieved from the Spotify Web API
  */
-export const loadCategories = async (access_token: string, database: Db = undefined): Promise<CollectionMember[]> => {
+export const loadCategories = async (access_token: string, database: Db = undefined): Promise<CollectionMember[] | SpotifyApi.ErrorObject> => {
     // const { db } = await connectToDatabase();
     let db;
     if (database) {

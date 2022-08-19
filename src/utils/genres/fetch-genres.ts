@@ -11,7 +11,7 @@ import { dataIsError, responseIsError } from '../fetch-utils';
  * @param {database} [database] optional. the database to load genres from
  * @returns {Promise<CollectionMember[]>} the list of genres
  */
-export const loadGenres = async (token: string, database: Db = undefined): Promise<CollectionMember[]> => {
+export const loadGenres = async (token: string, database: Db = undefined): Promise<CollectionMember[] | SpotifyApi.ErrorObject> => {
     // const { db } = await connectToDatabase();
     let db;
     if (database) {

@@ -15,3 +15,7 @@ export interface CollectionMember {
     id: string
     name: string
 }
+
+export interface ErrorObject {
+    error: SpotifyApi.ErrorObject
+}

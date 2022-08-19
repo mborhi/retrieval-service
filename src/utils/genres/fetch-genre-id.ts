@@ -16,7 +16,7 @@ const baseURL = endpointsConfig.SpotifyAPIBaseURL;
 export const getGenreTracks = async (token: string, genre: string): Promise<TrackData[] | SpotifyApi.ErrorObject> => {
     const maybeGenreItems = await searchGenre(token, genre);
     // handle possible errors
-    if (dataIsError(maybeGenreItems)) return maybeGenreItems as SpotifyApi.ErrorObject;
+    if (dataIsError(maybeGenreItems)) return maybeGenreItems;
     const genreItems = maybeGenreItems as SpotifyApi.TrackObjectFull[];
     const genreTracks = genreItems.map((item: SpotifyApi.TrackObjectFull) => {
         // validated these
