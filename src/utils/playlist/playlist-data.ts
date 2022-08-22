@@ -8,7 +8,6 @@ import { createNewPlaylist } from './modify-playlist';
 const baseURL = process.env.SPOTIFY_BASE_URL;
 
 
-// TODO: replace all calls to this function with: formatListOfTracks(getPlaylistTracks(...))
 /**
  * Gets the tracks of the specified playlist
  * Uses Get Playlist Spotify Web API call:
@@ -61,14 +60,25 @@ export const getPlayListTracks = async (token: string, playlist: SpotifyApi.Play
 const formatListOfTracks = (tracks: SpotifyApi.PlaylistTrackObject[]): TrackData[] => {
     const listOfPlaylistTracks = tracks.map((track) => {
         // add a function to handle filtering of nulls in this
-        const trackData = {
-            name: track.track.name,
-            previewURL: track.track.preview_url,
-            trackURI: track.track.uri,
-            trackNum: track.track.track_number,
-            trackAlbumImage: track.track.album.images[0].url
-        };
-        return trackData;
+        try {
+            const trackData = {
+                name: track.track.name,
+                previewURL: track.track.preview_url,
+                trackURI: track.track.uri,
+                trackNum: track.track.track_number,
+                trackAlbumImage: track.track.album.images[0].url
+            };
+            return trackData;
+        } catch (error) {
+            console.error(error);
+            return {
+                name: '',
+                previewURL: '',
+                trackURI: '',
+                trackNum: 0,
+                trackAlbumImage: ''
+            }
+        }
     });
     return listOfPlaylistTracks;
 }
