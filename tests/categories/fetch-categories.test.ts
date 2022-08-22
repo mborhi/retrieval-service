@@ -1,6 +1,7 @@
 import endpoints from '../../endpoints.config';
 import { Db, MongoClient } from 'mongodb';
 import { loadCategories } from '../../src/utils/categories/fetch-categories';
+import { CollectionMember } from '../../interfaces';
 jest.mock('node-fetch');
 
 import fetch from 'node-fetch';
@@ -59,7 +60,7 @@ describe("Fetch categories from database or make Spotify API call", () => {
         // set expire time for categories
         const inserted = await db.collection("collectionsUpdates").findOne({ name: "categories" });
         // console.log('inserted update token:', inserted);
-        const categories = await loadCategories(mock_access_token, db);
+        const categories = await loadCategories(mock_access_token, db) as CollectionMember[];
         // the retreived categories should always include 50 elements, the number of categories maintained by Spotify
         expect(categories.length).toEqual(expectedLength);
     });

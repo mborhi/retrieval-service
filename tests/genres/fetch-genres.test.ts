@@ -1,6 +1,7 @@
 import endpoints from '../../endpoints.config';
 import { Db, MongoClient } from "mongodb";
 import { loadGenres } from "../../src/utils/genres/fetch-genres";
+import { CollectionMember } from '../../interfaces';
 jest.mock('node-fetch');
 
 import fetch from 'node-fetch';
@@ -74,7 +75,7 @@ describe("Fetch genres from database or make Spotify API call", () => {
         const mockGenres = generateMockGenres(expectedLength);
         await db.collection('genres').insertMany(mockGenres);
         // await db.collection('collectionsUpdates').insertOne({ "name": "genres", "last_updated": Date.now() });
-        const genres = await loadGenres(mock_token, db);
+        const genres = await loadGenres(mock_token, db) as CollectionMember[];
         // the retreived genres should always have a length of 126, the number of genres maintained by Spotify 
         expect(genres.length).toEqual(expectedLength);
     });
